@@ -1,0 +1,16 @@
+---
+- name: config user settings
+  hosts: all
+  become: false
+  tasks:
+  - name: copy config files
+    ansible.builtin.copy:
+      src: "/home/denick/{{ item }}"
+      dest: "/home/{{ ansible_user }}/{{ item }}"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+    with_items:
+      - .screenrc
+      - .tmux.conf
+      - .vimrc
+
