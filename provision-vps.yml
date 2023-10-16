@@ -1,0 +1,22 @@
+---
+- name: provision vps
+  hosts: all
+  become: true
+  tasks:
+  # Password for ansible_user was changed manually
+  # Dns + reverse dns was changed manually
+  # Exim4 install + smarthost config + dns change was changed manually
+  # Note exim4:
+  # dc_readhost='stad.gr'
+  - name: Set a hostname
+    ansible.builtin.hostname:
+      name: "{{ hostname }}"
+  - name: Install unattended-upgrades
+    package:
+      name: unattended-upgrades
+      state: present
+    when: ansible_os_family == 'Debian'
+  - name: Set timezone
+    community.general.timezone:
+      name: Europe/Amsterdam
+
