@@ -1,0 +1,29 @@
+- name: Reboot if needed
+  hosts: all
+  become: true
+  tasks:
+    - name: Print kernel version
+      debug:
+        msg: '{{ansible_kernel}}'
+
+    - name: Check if reboot is required
+      stat:
+        path: /var/run/reboot-required
+        get_md5: no
+      register: reboot_required_file_existence
+
+    - name: Reboot servers if kernel is updated
+      reboot:
+        msg: "Rebooting the servers after applying Kernel Updates"
+        connect_timeout: 5
+        reboot_timeout: 90
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+      when: reboot_required_file_existence.stat.exists
+
+    - name: Done
+      debug:
+        msg:
+          - 'System rebooted and running successfully'
+      when: reboot_required_file_existence.stat.exists
