@@ -1,0 +1,67 @@
+---
+- name: config host for irc client
+  hosts: all
+  become: true
+  tasks:
+  - name: Install irssi
+    apt:
+      name: irssi
+  - name: Add user apie
+    ansible.builtin.user:
+      name: apie
+      uid: 5000
+      shell: /bin/bash
+  - name: Add authorized key
+    ansible.posix.authorized_key:
+      user: apie
+      key: "{{ lookup('file', '/home/denick/.ssh/id_ed25519.pub') }}"
+  - name: copy screen config
+    ansible.builtin.copy:
+      src: /home/denick/.screenrc
+      dest: /home/apie/.screenrc
+      owner: apie
+      group: apie
+  - name: copy list screen script
+    ansible.builtin.copy:
+      src: files/list_screen.bash
+      dest: /home/apie/.list_screen
+      owner: apie
+      group: apie
+  - name: add .list_screen to end of .bashrc
+    lineinfile:
+      dest: /home/apie/.bashrc
+      line: ". .list_screen"
+  - name: copy irssi config files
+    ansible.builtin.copy:
+      src: files/irssi/
+      dest: /home/apie/.irssi/
+      owner: apie
+      group: apie
+  - name: copy irssi autorun scripts
+    ansible.builtin.copy:
+      src: files/irssi/scripts/autorun/
+      dest: /home/apie/.irssi/scripts/autorun/
+      owner: apie
+      group: apie
+  - name: Install cpanm
+    apt:
+      name: cpanminus
+      update_cache: yes
+  - name: install needed perl modules for script rss_to_irc_topic
+    community.general.cpanm:
+      name: XML::FeedPP
+  - name: load irssi config file from vault
+    include_vars: vault/irssi/config.yml
+  - name: copy irssi config file from vault
+    ansible.builtin.copy:
+      content: "{{ item.content }}"
+      dest: /home/apie/.irssi/config
+      owner: apie
+      group: apie
+    with_items:
+      - "{{ configs }}"
+
+# Now log in
+# Start screen
+# Start irssi
+

@@ -1,0 +1,3 @@
+-disabled -server IRCnet * * * * * /echo hoi
+-server IRCnet 0 0 * * * /run autorun/rss_to_irc_topic.pl
+-disabled -server IRCnet 7 0 * * * /msg #scintilla !quote
