@@ -19,4 +19,8 @@
   - name: Set timezone
     community.general.timezone:
       name: Europe/Amsterdam
+  - name: Set login banner
+    ansible.builtin.copy:
+      src: files/banner.txt
+      dest: /etc/motd
 
