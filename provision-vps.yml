@@ -11,9 +11,12 @@
   - name: Set a hostname
     ansible.builtin.hostname:
       name: "{{ hostname }}"
-  - name: Install unattended-upgrades
+  - name: Install packages
     package:
-      name: unattended-upgrades
+      name:
+        - unattended-upgrades
+        - python3-pip
+        - acl  # needed for ansible to perform updates as unprivileged users
       state: present
     when: ansible_os_family == 'Debian'
   - name: Set timezone
@@ -23,4 +26,10 @@
     ansible.builtin.copy:
       src: files/banner.txt
       dest: /etc/motd
-
+  - name: Get github.com key
+    shell: 'ssh-keyscan -H github.com'
+    register: github_key
+  - name: Add github.com to known_hosts
+    lineinfile:
+      dest: /etc/ssh/ssh_known_hosts
+      line: "{{ github_key.stdout }}"
