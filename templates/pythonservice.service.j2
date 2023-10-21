@@ -1,0 +1,15 @@
+[Unit]
+Description={{ service_description }}
+After=syslog.target
+
+[Service]
+Type=simple
+User={{ username }}
+Group={{ username }}
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/home/{{ username }}/src/
+ExecStart=/usr/bin/python3.10 {{ script_filename }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

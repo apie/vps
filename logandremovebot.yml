@@ -1,0 +1,55 @@
+---
+- name: config logandremovebot
+  hosts: all
+  handlers:
+    - name: Import tasks
+      import_tasks: handlers/main.yml
+  vars:
+    username: logandremovebot
+    repo_name: logandremovebot
+    service_description: "Log and remove bot"
+    script_filename: log_and_remove.py
+  tasks:
+  - name: Add user {{ username }}
+    become: true
+    ansible.builtin.user:
+      name: "{{ username }}"
+      shell: /bin/bash
+  - name: Tasks as user
+    become: true
+    become_user: "{{ username }}"
+    block:
+      - name: Checkout source
+        ansible.builtin.git:
+          repo: "https://github.com/apie/{{ repo_name }}.git"
+          dest: "/home/{{ username }}/src"
+      - name: Install requirements locally
+        ansible.builtin.pip:
+          executable: pip3.10
+          requirements: "/home/{{ username }}/src/setup/requirements.txt"
+      - name: Load config from vault
+        include_vars: vault/{{ username }}.yml
+      - name: Copy config from vault
+        no_log: true
+        ansible.builtin.copy:
+          content: "{{ item.content }}"
+          dest: "/home/{{ username }}/src/{{ item.filename }}"
+          owner: "{{ username }}"
+          group: "{{ username }}"
+          mode: 0700
+        with_items:
+          - "{{ configs }}"
+  - name: copy service file
+    become: true
+    ansible.builtin.template:
+      src: templates/pythonservice.service.j2
+      dest: "/etc/systemd/system/{{ username }}.service"
+      mode: 644
+    notify:
+      - reload systemctl
+  - name: enable service + start
+    become: true
+    ansible.builtin.systemd.service:
+      name: "{{ username }}.service"
+      state: started
+      enabled: yes
