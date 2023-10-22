@@ -1,0 +1,52 @@
+---
+- name: config telegram_members
+  hosts: all
+  vars:
+    username: telegram_members
+    repo_name: telegram_members
+  tasks:
+  - name: Add user {{ username }}
+    become: true
+    ansible.builtin.user:
+      name: "{{ username }}"
+      shell: /bin/bash
+  - name: Tasks as user
+    become: true
+    become_user: "{{ username }}"
+    block:
+      - name: Checkout source
+        ansible.builtin.git:
+          repo: "https://github.com/apie/{{ repo_name }}.git"
+          dest: "/home/{{ username }}/src"
+      - name: Install requirements locally
+        ansible.builtin.pip:
+          executable: pip3.10
+          requirements: "/home/{{ username }}/src/setup/requirements.txt"
+      - name: Install telegram-send
+        ansible.builtin.pip:
+          name: telegram-send
+      - name: Setup crontab
+        ansible.builtin.cron:
+          name: MAILTO
+          env: yes
+          job: "{{ cron_mailto }}"
+      - name: Setup cronjob
+        ansible.builtin.cron:
+          name: "Send alert for change in number of members of telegram channel {{ item }}"
+          minute: "59"
+          hour: "7"
+          job: "/usr/bin/python3.10 /home/{{ username }}/src/telegram_members.py {{ item }} && /usr/bin/python3.10 /home/{{ username }}/src/graph.py {{ item }} && /home/{{ username }}/.local/bin/telegram-send --config /home/{{ username }}/src/telegram-send.conf --image /home/{{ username }}/src/{{ item }}.png"
+        with_items:
+          - dagelijksdirkjan
+          - LidlDagDeals
+  - name: Load telegram-send config from vault
+    include_vars: "vault/{{ username }}.yml"
+  - name: Copy telegram-send config from vault
+    no_log: true
+    become: true
+    ansible.builtin.copy:
+      content: "{{ telegram_send_config.content }}"
+      dest: "/home/{{ username }}/src/{{ telegram_send_config.filename }}"
+      owner: "{{ username }}"
+      group: "{{ username }}"
+      mode: 0700
