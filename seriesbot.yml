@@ -1,23 +1,26 @@
 ---
 - name: config seriesbot
   hosts: all
+  vars:
+    username: seriesbot
+    repo_name: seriesbot
   tasks:
-  - name: Add user seriesbot
+  - name: Add user {{ username }}
     become: true
     ansible.builtin.user:
-      name: seriesbot
+      name: "{{ username }}"
       shell: /bin/bash
   - name: Tasks as user
     become: true
-    become_user: seriesbot
+    become_user: "{{ username }}"
     block:
       - name: Checkout source
         ansible.builtin.git:
-          repo: https://github.com/apie/seriesbot.git
-          dest: /home/seriesbot/src
+          repo: https://github.com/apie/{{ repo_name }}.git
+          dest: /home/{{ username }}/src
       - name: Install requirements locally
         ansible.builtin.pip:
-          requirements: /home/seriesbot/src/setup/requirements.txt
+          requirements: /home/{{ username }}/src/setup/requirements.txt
       - name: Install telegram-send
         ansible.builtin.pip:
           name: telegram-send
@@ -31,17 +34,17 @@
           name: "Send alert for new episodes"
           minute: "1"
           hour: "7"
-          job: "/usr/bin/python3.10 /home/seriesbot/src/new_series.py | /home/seriesbot/.local/bin/telegram-send --config /home/seriesbot/src/telegram-send.conf --stdin"
-  - name: Load seriesbot + telegram-send config from vault
-    include_vars: vault/seriesbot.yml
-  - name: Copy seriesbot + telegram-send config from vault
+          job: "/usr/bin/python3.10 /home/{{ username }}/src/new_series.py | /home/{{ username }}/.local/bin/telegram-send --config /home/{{ username }}/src/telegram-send.conf --stdin"
+  - name: Load {{ username }} + telegram-send config from vault
+    include_vars: vault/{{ username }}.yml
+  - name: Copy {{ username }} + telegram-send config from vault
     no_log: true
     become: true
     ansible.builtin.copy:
       content: "{{ item.content }}"
-      dest: "/home/seriesbot/src/{{ item.filename }}"
-      owner: seriesbot
-      group: seriesbot
+      dest: "/home/{{ username }}/src/{{ item.filename }}"
+      owner: "{{ username }}"
+      group: "{{ username }}"
       mode: 0700
     with_items:
       - "{{ configs }}"
