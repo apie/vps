@@ -20,6 +20,7 @@
         - python3-pip
         - python3-virtualenv
         - acl  # needed for ansible to perform updates as unprivileged users
+        - nginx
       state: present
     when: ansible_os_family == 'Debian'
   - name: Set timezone
