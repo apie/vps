@@ -1,0 +1,76 @@
+---
+- name: config aoc_alert_bot
+  hosts: all
+  vars:
+    username: aoc_alert_bot
+    repo_name: advent-of-code
+  tasks:
+  - name: Add user {{ username }}
+    become: true
+    ansible.builtin.user:
+      name: "{{ username }}"
+      shell: /bin/bash
+  - name: Tasks as user
+    become: true
+    become_user: "{{ username }}"
+    block:
+      - name: Checkout source
+        ansible.builtin.git:
+          repo: "https://github.com/apie/{{ repo_name }}.git"
+          dest: "/home/{{ username }}/src"
+      - name: Install requirements locally
+        ansible.builtin.pip:
+          executable: pip3.10
+          requirements: "/home/{{ username }}/src/alert/requirements.txt"
+      - name: Install telegram-send
+        ansible.builtin.pip:
+          name: telegram-send
+      - name: Setup crontab
+        ansible.builtin.cron:
+          name: MAILTO
+          env: yes
+          job: "{{ cron_mailto }}"
+      - name: Setup cronjob 1
+        vars:
+          leaderboard_id: 523364
+          configfile: telegram-send-dacom.conf
+        ansible.builtin.cron:
+          name: "Send alert for team {{ leaderboard_id }} for year {{ item.year }}"
+          minute: "{{ item.cron_minute }}"
+          hour: "{{ item.cron_hour | default('2') }}"
+          job: "/home/{{ username }}/src/alert/update_and_send.bash {{ leaderboard_id}} {{ item.year }} {{ configfile}}"
+        with_items:
+          - { year: 2021 , cron_minute: 1}
+          - { year: 2022 , cron_minute: 2, cron_hour: "*/6"}
+      - name: Setup cronjob 2
+        vars:
+          leaderboard_id: 380357
+          configfile: telegram-send-oud-scintilla-aoc.conf
+        ansible.builtin.cron:
+          name: "Send alert for team {{ leaderboard_id }} for year {{ item.year }}"
+          minute: "{{ item.cron_minute }}"
+          hour: "{{ item.cron_hour | default('2') }}"
+          job: "/home/{{ username }}/src/alert/update_and_send.bash {{ leaderboard_id}} {{ item.year }} {{ configfile}}"
+        with_items:
+          - { year: 2015 , cron_minute: 10}
+          - { year: 2016 , cron_minute: 11}
+          - { year: 2017 , cron_minute: 12}
+          - { year: 2018 , cron_minute: 13}
+          - { year: 2019 , cron_minute: 14}
+          - { year: 2020 , cron_minute: 15}
+          - { year: 2021 , cron_minute: 16, cron_hour: "*/6"}
+          - { year: 2022 , cron_minute: "*/15", cron_hour: "*"}
+  - name: Load bot + telegram-send config from vault
+    include_vars: vault/{{ username }}.yml
+  - name: Copy bot + telegram-send config from vault
+    no_log: true
+    become: true
+    ansible.builtin.copy:
+      content: "{{ item.content }}"
+      dest: "/home/{{ username }}/src/alert/{{ item.filename }}"
+      owner: "{{ username }}"
+      group: "{{ username }}"
+      mode: 0700
+    with_items:
+      - "{{ configs }}"
+
