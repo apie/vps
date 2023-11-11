@@ -2,6 +2,9 @@
 - name: provision vps
   hosts: all
   become: true
+  handlers:
+    - name: Import tasks
+      import_tasks: handlers/main.yml
   tasks:
   # VPS with Ubuntu 22.04 assumed
   # ansible_user configured, host key login + sudo nopassword
@@ -37,3 +40,7 @@
     lineinfile:
       dest: /etc/ssh/ssh_known_hosts
       line: "{{ github_key.stdout }}"
+  - name: Hide nginx server version in responses (enable disabled option 'server_tokens off;')
+    shell: sed -i '/# server_tokens off;/s/# //' /etc/nginx/nginx.conf
+    notify:
+      - reload nginx

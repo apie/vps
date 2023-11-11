@@ -1,3 +1,5 @@
 - name: reload systemctl
   command: systemctl daemon-reload
+- name: reload nginx
+  command: service nginx reload
 
