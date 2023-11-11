@@ -1,0 +1,42 @@
+---
+- name: config birthdaymailer
+  hosts: all
+  vars:
+    username: birthdaymailer
+    repo_name: birthdaymailer
+  tasks:
+  - name: Add user {{ username }}
+    become: true
+    ansible.builtin.user:
+      name: "{{ username }}"
+      shell: /bin/bash
+  - name: Tasks as user
+    become: true
+    become_user: "{{ username }}"
+    block:
+      - name: Checkout source
+        ansible.builtin.git:
+          repo: "https://github.com/apie/{{ repo_name }}.git"
+          dest: "/home/{{ username }}/src"
+      - name: Setup crontab
+        ansible.builtin.cron:
+          name: MAILTO
+          env: yes
+          job: "{{ cron_mailto }}"
+      - name: Setup cronjob
+        ansible.builtin.cron:
+          name: "Send email to people that celebrate their birthday today"
+          minute: "40"
+          hour: "7"
+          job: "/usr/bin/python3.10 /home/{{ username }}/src/mailer/birthdaymailer.py"
+  - name: Load settings from vault
+    include_vars: vault/{{ username }}.yml
+  - name: Copy settings from vault
+    no_log: true
+    become: true
+    ansible.builtin.copy:
+      content: "{{ settings_file.content }}"
+      dest: "/home/{{ username }}/src/mailer/{{ settings_file.filename }}"
+      owner: "{{ username }}"
+      group: "{{ username }}"
+      mode: 0700
