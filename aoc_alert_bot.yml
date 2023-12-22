@@ -62,6 +62,16 @@
           - { year: 2021 , cron_minute: 16, cron_hour: "*/6"}
           - { year: 2022 , cron_minute: 17, cron_hour: "*"}
           - { year: 2023 , cron_minute: "*/5", cron_hour: "*"}
+      - name: Setup cronjob 3
+        vars:
+          leaderboard_id: 523364
+          year: 2023
+          configfile: telegram-send-dacom.conf
+        ansible.builtin.cron:
+          name: "Send alert if cookie has expired"
+          minute: "0"
+          hour: "*/12"
+          job: "/home/{{ username }}/src/alert/check_cookie.bash {{ leaderboard_id}} {{ year }} {{ configfile}}"
   - name: Load bot + telegram-send config from vault
     include_vars: vault/{{ username }}.yml
   - name: Copy bot + telegram-send config from vault
