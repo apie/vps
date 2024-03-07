@@ -82,7 +82,7 @@
       dest: "/home/{{ username }}/src/alert/{{ item.filename }}"
       owner: "{{ username }}"
       group: "{{ username }}"
-      mode: 0700
+      mode: 0600
     with_items:
       - "{{ configs }}"
 
