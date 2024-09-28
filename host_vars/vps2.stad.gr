@@ -2,4 +2,5 @@
 ansible_user: denickm
 hostname: denickm-vps2
 cron_mailto: cron@stad.gr
+letsencrypt_email: cron@stad.gr
 
