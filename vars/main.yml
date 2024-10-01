@@ -18,3 +18,4 @@ certbot_certs:
   - domains:
       - "{{ inventory_hostname }}"
 certbot_create_extra_args: ''
+certbot_auto_renew: false # renew is already done by a cron inside certbot package
