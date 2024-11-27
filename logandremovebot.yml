@@ -23,9 +23,10 @@
         ansible.builtin.git:
           repo: "https://github.com/apie/{{ repo_name }}.git"
           dest: "/home/{{ username }}/src"
-      - name: Install requirements locally
+      - name: Install requirements in venv
         ansible.builtin.pip:
-          executable: pip3.10
+          virtualenv: "/home/{{ username }}/src/venv"
+          virtualenv_python: python3.10
           requirements: "/home/{{ username }}/src/setup/requirements.txt"
       - name: Load config from vault
         include_vars: vault/{{ username }}.yml
@@ -42,7 +43,7 @@
   - name: copy service file
     become: true
     ansible.builtin.template:
-      src: templates/pythonservice.service.j2
+      src: templates/pythonvenvservice.service.j2
       dest: "/etc/systemd/system/{{ username }}.service"
       mode: 644
     notify:
@@ -51,5 +52,5 @@
     become: true
     ansible.builtin.systemd.service:
       name: "{{ username }}.service"
-      state: started
+      state: restarted
       enabled: yes
