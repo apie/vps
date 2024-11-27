@@ -33,7 +33,7 @@
       - name: Setup cronjob 1
         vars:
           leaderboard_id: 523364
-          configfile: telegram-send-dacom.conf
+          configfile: telegram-send-ytec.conf
         ansible.builtin.cron:
           name: "Send alert for team {{ leaderboard_id }} for year {{ item.year }}"
           minute: "{{ item.cron_minute }}"
@@ -64,9 +64,9 @@
           - { year: 2023 , cron_minute: 18, cron_hour: "*"}
       - name: Setup cronjob 3
         vars:
-          leaderboard_id: 523364
+          leaderboard_id: 380677
           year: 2023
-          configfile: telegram-send-dacom.conf
+          configfile: telegram-send-ytec.conf
         ansible.builtin.cron:
           name: "Send alert if cookie has expired"
           minute: "0"
