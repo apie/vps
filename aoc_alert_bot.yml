@@ -32,7 +32,7 @@
           job: "{{ cron_mailto }}"
       - name: Setup cronjob 1
         vars:
-          leaderboard_id: 523364
+          leaderboard_id: 380677
           configfile: telegram-send-ytec.conf
         ansible.builtin.cron:
           name: "Send alert for team {{ leaderboard_id }} for year {{ item.year }}"
