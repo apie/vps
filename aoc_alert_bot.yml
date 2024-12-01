@@ -40,9 +40,9 @@
           hour: "{{ item.cron_hour | default('2') }}"
           job: "/home/{{ username }}/src/alert/update_and_send.bash {{ leaderboard_id}} {{ item.year }} {{ configfile}}"
         with_items:
-          - { year: 2021 , cron_minute: 1}
-          - { year: 2022 , cron_minute: 2, cron_hour: "*/6"}
-          - { year: 2023 , cron_minute: 3, cron_hour: "*"}
+          - { year: 2022 , cron_minute: 1}
+          - { year: 2023 , cron_minute: 2}
+          - { year: 2024 , cron_minute: 3, cron_hour: "*"}
       - name: Setup cronjob 2
         vars:
           leaderboard_id: 380357
@@ -59,9 +59,10 @@
           - { year: 2018 , cron_minute: 13}
           - { year: 2019 , cron_minute: 14}
           - { year: 2020 , cron_minute: 15}
-          - { year: 2021 , cron_minute: 16, cron_hour: "*/6"}
-          - { year: 2022 , cron_minute: 17, cron_hour: "*"}
-          - { year: 2023 , cron_minute: 18, cron_hour: "*"}
+          - { year: 2021 , cron_minute: 16}
+          - { year: 2022 , cron_minute: 17}
+          - { year: 2023 , cron_minute: 18}
+          - { year: 2024 , cron_minute: "*/5", cron_hour: "*"}
       - name: Setup cronjob 3
         vars:
           leaderboard_id: 380677
