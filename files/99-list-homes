@@ -1,0 +1,6 @@
+#!/bin/bash
+echo 'User accounts found on this system:'
+ls /home
+echo
+echo 'Custom services:'
+grep 'ExecStart=/home' /etc/systemd/system/*.service --no-filename

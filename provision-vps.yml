@@ -33,6 +33,11 @@
     ansible.builtin.copy:
       src: files/banner.txt
       dest: /etc/motd
+  - name: Dynamic login banner listing the server accounts
+    ansible.builtin.copy:
+      src: files/99-list-homes
+      dest: /etc/update-motd.d/99-list-homes
+      mode: 0755
   - name: Get github.com key
     shell: 'ssh-keyscan -H github.com'
     register: github_key
