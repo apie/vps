@@ -1,0 +1,64 @@
+---
+- name: config lastfm-event-countdown
+  hosts: letsencrypt
+  handlers:
+    - name: Import tasks
+      import_tasks: handlers/main.yml
+  vars:
+    username: eventcountdown
+    repo_name: lastfm-countdown-clock
+    service_description: "eventcountdown"
+    service_working_dir: "backend"
+    service_script_filename: "backend/start.bash"
+  tasks:
+  - name: Add user {{ username }}
+    become: true
+    ansible.builtin.user:
+      name: "{{ username }}"
+      shell: /bin/bash
+  - name: Tasks as user
+    become: true
+    become_user: "{{ username }}"
+    block:
+      - name: Checkout source
+        ansible.builtin.git:
+          repo: "https://github.com/apie/{{ repo_name }}.git"
+          dest: "/home/{{ username }}/src"
+      - name: Install requirements in venv
+        ansible.builtin.pip:
+          virtualenv: "/home/{{ username }}/src/backend/venv"
+          virtualenv_python: "{{ python_version }}"
+          requirements: "/home/{{ username }}/src/backend/requirements.txt"
+  - name: copy api service file
+    become: true
+    ansible.builtin.template:
+      src: templates/customservice.service.j2
+      dest: "/etc/systemd/system/{{ username }}.service"
+      mode: 644
+    notify:
+      - reload systemctl
+  - name: enable web service + start
+    become: true
+    ansible.builtin.systemd.service:
+      name: "{{ username }}.service"
+      state: started
+      enabled: yes
+  - name: Copy Nginx server configuration locations in place.
+    become: true
+    template:
+      src: templates/lastfm-event-countdown.locations.j2
+      dest: /etc/nginx/conf.d/vps2.stad.gr.lastfm-event-countdown.locations
+      mode: 0644
+    notify: restart nginx
+  - name: Compile frontend locally
+    command: npm run build
+    args:
+      chdir: "/home/denick/Documenten/programming/python/lastfm-countdown-clock/"
+    delegate_to: localhost
+  - name: Copy frontend build to remote
+    become: true
+    ansible.builtin.copy:
+      src: "/home/denick/Documenten/programming/python/lastfm-countdown-clock/dist/"
+      dest: "/var/www/html/lastfm-countdown-clock/"
+      owner: "www-data"
+      group: "www-data"

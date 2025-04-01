@@ -1,0 +1,14 @@
+[Unit]
+Description={{ service_description }}
+After=syslog.target
+
+[Service]
+Type=simple
+User={{ username }}
+Group={{ username }}
+WorkingDirectory=/home/{{ username }}/src/{{ service_working_dir }}
+ExecStart=/home/{{ username }}/src/{{ service_script_filename }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

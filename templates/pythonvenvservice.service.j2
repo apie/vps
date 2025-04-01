@@ -1,5 +1,5 @@
 [Unit]
-Description={{ service_description }}
+Description={{ pythonvenvservice_description }}
 After=syslog.target
 
 [Service]
@@ -8,7 +8,7 @@ User={{ username }}
 Group={{ username }}
 Environment=PYTHONUNBUFFERED=1
 WorkingDirectory=/home/{{ username }}/src/
-ExecStart=/home/{{ username }}/src/venv/bin/python3.10 {{ script_filename }}
+ExecStart=/home/{{ username }}/src/venv/bin/python{{ python_version }} {{ script_filename }}
 Restart=always
 
 [Install]

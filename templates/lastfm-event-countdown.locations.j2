@@ -1,0 +1,7 @@
+location /assets/ {
+  root /var/www/html/lastfm-countdown-clock;
+}
+location /api/events/ {
+  include proxy_params;
+  proxy_pass http://localhost:5000;
+}
