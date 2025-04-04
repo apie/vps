@@ -53,12 +53,12 @@
   - name: Compile frontend locally
     command: npm run build
     args:
-      chdir: "/home/denick/Documenten/programming/python/lastfm-countdown-clock/"
+      chdir: "{{ local_checkout_directory }}"
     delegate_to: localhost
   - name: Copy frontend build to remote
     become: true
     ansible.builtin.copy:
-      src: "/home/denick/Documenten/programming/python/lastfm-countdown-clock/dist/"
+      src: "{{ local_checkout_directory }}/dist/"
       dest: "/var/www/html/lastfm-countdown-clock/"
       owner: "www-data"
       group: "www-data"
