@@ -37,7 +37,7 @@
       mode: 644
     notify:
       - reload systemctl
-  - name: enable web service + start
+  - name: enable api service + start
     become: true
     ansible.builtin.systemd.service:
       name: "{{ username }}.service"
@@ -62,3 +62,8 @@
       dest: "/var/www/html/lastfm-countdown-clock/"
       owner: "www-data"
       group: "www-data"
+  - name: Restart api service
+    become: true
+    ansible.builtin.systemd.service:
+      name: "{{ username }}.service"
+      state: restarted
