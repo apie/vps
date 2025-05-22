@@ -1,0 +1,4 @@
+location /cachingproxy/ {
+  include proxy_params;
+  proxy_pass http://localhost:5001;
+}
