@@ -4,3 +4,4 @@ ls /home
 echo
 echo 'Custom services:'
 grep 'ExecStart=/home' /etc/systemd/system/*.service --no-filename
+exit 0
