@@ -93,5 +93,5 @@ before a real run, since these deploy to production (vps, vps2).
 - Step 4 done: all app playbooks converted except the stubs `albumscrobbles` and `startpagina`.
   cachingproxy was verified with `--check --diff` on vps2; the other conversions were only
   syntax-checked and still need a `--check --diff` run each.
-- Still open: step 5 (move `templates/*.locations.j2` next to their apps, remove `files/`
-  leftovers, `todo.txt`) and step 6 (`site.yml`, README).
+- Steps 5 and 6 done: app-specific templates and provision files live next to their playbooks,
+  `playbooks/site.yml` and `README.md` added. `todo.txt` was left alone (git-ignored).

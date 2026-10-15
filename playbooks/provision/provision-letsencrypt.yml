@@ -20,13 +20,13 @@
 
     - name: Copy example index.html file in place.
       copy:
-        src: "{{ playbook_dir }}/../../files/index.html"
+        src: "files/index.html"
         dest: "{{ nginx_docroot }}/index.html"
         mode: 0755
 
     - name: Copy Nginx server configuration in place.
       template:
-        src: "{{ playbook_dir }}/../../templates/https-letsencrypt.conf.j2"
+        src: "templates/https-letsencrypt.conf.j2"
         dest: /etc/nginx/sites-enabled/https-letsencrypt.conf
         mode: 0644
       notify: restart nginx

@@ -4,7 +4,7 @@
   become: true
   handlers:
     - name: Import tasks
-      import_tasks: "{{ playbook_dir }}/../../handlers/main.yml"
+      import_tasks: "handlers/main.yml"
   tasks:
   # VPS with Ubuntu 22.04 assumed
   # ansible_user configured, host key login + sudo nopassword
@@ -31,11 +31,11 @@
       name: Europe/Amsterdam
   - name: Set login banner
     ansible.builtin.copy:
-      src: "{{ playbook_dir }}/../../files/banner.txt"
+      src: "files/banner.txt"
       dest: /etc/motd
   - name: Dynamic login banner listing the server accounts
     ansible.builtin.copy:
-      src: "{{ playbook_dir }}/../../files/99-list-homes"
+      src: "files/99-list-homes"
       dest: /etc/update-motd.d/99-list-homes
       mode: 0755
   - name: Get github.com key

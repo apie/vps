@@ -8,4 +8,4 @@
         repo_name: cachingproxy
         service_description: "cachingproxy"
         service_script_filename: "start.bash"
-        nginx_locations_template: "{{ playbook_dir }}/../../templates/cachingproxy.locations.j2"
+        nginx_locations_template: "{{ playbook_dir }}/templates/cachingproxy.locations.j2"

@@ -1,0 +1,17 @@
+---
+# Everything that is deployed to the servers, in order.
+# One-off playbooks (user-setup, irc-setup, maintenance/*) are run by hand.
+# Needs -e local_checkout_directory=... for lastfm-event-countdown.
+- import_playbook: provision/provision-vps.yml
+- import_playbook: provision/provision-letsencrypt.yml
+
+- import_playbook: apps/aoc_alert_bot.yml
+- import_playbook: apps/birthdaymailer.yml
+- import_playbook: apps/cachingproxy.yml
+- import_playbook: apps/lastfm-event-countdown.yml
+- import_playbook: apps/logandremovebot.yml
+- import_playbook: apps/mastermind.yml
+- import_playbook: apps/nosfeed.yml
+- import_playbook: apps/seriesbot.yml
+- import_playbook: apps/telegram_members.yml
+# Not finished yet: apps/albumscrobbles.yml, apps/startpagina.yml
