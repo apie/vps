@@ -1,51 +1,28 @@
 ---
 - name: config seriesbot
   hosts: all
-  vars:
-    username: seriesbot
-    repo_name: seriesbot
+  roles:
+    - role: app_user
+      vars:
+        username: seriesbot
+        repo_name: seriesbot
+        app_cron_mailto: "{{ cron_mailto }}"
+        app_vault_file: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
+        app_config_files: "{{ configs }}"
   tasks:
-  - name: Add user {{ username }}
-    become: true
-    ansible.builtin.user:
-      name: "{{ username }}"
-      shell: /bin/bash
-  - name: Tasks as user
-    become: true
-    become_user: "{{ username }}"
-    block:
-      - name: Checkout source
-        ansible.builtin.git:
-          repo: https://github.com/apie/{{ repo_name }}.git
-          dest: /home/{{ username }}/src
-      - name: Install requirements locally
-        ansible.builtin.pip:
-          requirements: /home/{{ username }}/src/setup/requirements.txt
-      - name: Install telegram-send
-        ansible.builtin.pip:
-          name: telegram-send
-      - name: Setup crontab
-        ansible.builtin.cron:
-          name: MAILTO
-          env: yes
-          job: "{{ cron_mailto }}"
-      - name: Setup cronjob
-        ansible.builtin.cron:
-          name: "Send alert for new episodes"
-          minute: "1"
-          hour: "7"
-          job: "/usr/bin/python3.10 /home/{{ username }}/src/new_series.py | /home/{{ username }}/.local/bin/telegram-send --config /home/{{ username }}/src/telegram-send.conf --stdin"
-  - name: Load {{ username }} + telegram-send config from vault
-    include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
-  - name: Copy {{ username }} + telegram-send config from vault
-    no_log: true
-    become: true
-    ansible.builtin.copy:
-      content: "{{ item.content }}"
-      dest: "/home/{{ username }}/src/{{ item.filename }}"
-      owner: "{{ username }}"
-      group: "{{ username }}"
-      mode: 0700
-    with_items:
-      - "{{ configs }}"
-
+    - name: Tasks as user
+      become: true
+      become_user: seriesbot
+      block:
+        - name: Install requirements locally
+          ansible.builtin.pip:
+            requirements: /home/seriesbot/src/setup/requirements.txt
+        - name: Install telegram-send
+          ansible.builtin.pip:
+            name: telegram-send
+        - name: Setup cronjob
+          ansible.builtin.cron:
+            name: "Send alert for new episodes"
+            minute: "1"
+            hour: "7"
+            job: "/usr/bin/python3.10 /home/seriesbot/src/new_series.py | /home/seriesbot/.local/bin/telegram-send --config /home/seriesbot/src/telegram-send.conf --stdin"

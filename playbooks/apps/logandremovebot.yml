@@ -1,56 +1,15 @@
 ---
 - name: config logandremovebot
   hosts: all
-  handlers:
-    - name: Import tasks
-      import_tasks: "{{ playbook_dir }}/../../handlers/main.yml"
-  vars:
-    username: logandremovebot
-    repo_name: logandremovebot
-    service_description: "Log and remove bot"
-    script_filename: log_and_remove.py
-  tasks:
-  - name: Add user {{ username }}
-    become: true
-    ansible.builtin.user:
-      name: "{{ username }}"
-      shell: /bin/bash
-  - name: Tasks as user
-    become: true
-    become_user: "{{ username }}"
-    block:
-      - name: Checkout source
-        ansible.builtin.git:
-          repo: "https://github.com/apie/{{ repo_name }}.git"
-          dest: "/home/{{ username }}/src"
-      - name: Install requirements in venv
-        ansible.builtin.pip:
-          virtualenv: "/home/{{ username }}/src/venv"
-          virtualenv_python: python3.10
-          requirements: "/home/{{ username }}/src/setup/requirements.txt"
-      - name: Load config from vault
-        include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
-      - name: Copy config from vault
-        no_log: true
-        ansible.builtin.copy:
-          content: "{{ item.content }}"
-          dest: "/home/{{ username }}/src/{{ item.filename }}"
-          owner: "{{ username }}"
-          group: "{{ username }}"
-          mode: 0700
-        with_items:
-          - "{{ configs }}"
-  - name: copy service file
-    become: true
-    ansible.builtin.template:
-      src: "{{ playbook_dir }}/../../templates/pythonvenvservice.service.j2"
-      dest: "/etc/systemd/system/{{ username }}.service"
-      mode: 644
-    notify:
-      - reload systemctl
-  - name: enable service + start
-    become: true
-    ansible.builtin.systemd.service:
-      name: "{{ username }}.service"
-      state: restarted
-      enabled: yes
+  roles:
+    - role: app_service
+      vars:
+        username: logandremovebot
+        repo_name: logandremovebot
+        service_description: "Log and remove bot"
+        script_filename: log_and_remove.py
+        service_template: pythonvenvservice.service.j2
+        app_venv_python: python3.10
+        app_requirements: setup/requirements.txt
+        app_vault_file: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
+        app_config_files: "{{ configs }}"

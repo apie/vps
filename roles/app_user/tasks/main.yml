@@ -1,0 +1,33 @@
+---
+- name: Add user {{ username }}
+  become: true
+  ansible.builtin.user:
+    name: "{{ username }}"
+    shell: /bin/bash
+- name: Checkout source
+  become: true
+  become_user: "{{ username }}"
+  ansible.builtin.git:
+    repo: "https://github.com/apie/{{ repo_name }}.git"
+    dest: "/home/{{ username }}/src"
+- name: Setup crontab MAILTO
+  become: true
+  become_user: "{{ username }}"
+  ansible.builtin.cron:
+    name: MAILTO
+    env: true
+    job: "{{ app_cron_mailto }}"
+  when: app_cron_mailto | length > 0
+- name: Load config from vault
+  ansible.builtin.include_vars: "{{ app_vault_file }}"
+  when: app_vault_file | length > 0
+- name: Copy config from vault
+  become: true
+  no_log: true
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "/home/{{ username }}/src/{{ app_config_dir }}{{ '/' if app_config_dir else '' }}{{ item.filename }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "{{ app_config_mode }}"
+  loop: "{{ app_config_files if app_vault_file | length > 0 else [] }}"

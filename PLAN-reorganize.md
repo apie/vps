@@ -84,3 +84,14 @@ plus its few special extra tasks (e.g. telegram DB copy, cron jobs for birthdaym
 
 All moves are path-only until step 4. Use `--check --diff` on each converted playbook
 before a real run, since these deploy to production (vps, vps2).
+
+## Progress (2026-10-15)
+
+- Steps 1-2 done (commits 8ce1c08, 42e9bcd). Step 3 done: `roles/app_user` (user, checkout,
+  MAILTO cron, vault config copy) and `roles/app_service` (depends on app_user: venv,
+  systemd unit, nginx locations, restart).
+- Step 4 done: all app playbooks converted except the stubs `albumscrobbles` and `startpagina`.
+  cachingproxy was verified with `--check --diff` on vps2; the other conversions were only
+  syntax-checked and still need a `--check --diff` run each.
+- Still open: step 5 (move `templates/*.locations.j2` next to their apps, remove `files/`
+  leftovers, `todo.txt`) and step 6 (`site.yml`, README).

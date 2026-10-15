@@ -1,8 +1,12 @@
 ---
-# Required: username, repo_name, service_description, service_script_filename
+# Required: username, repo_name, service_description, and whatever the chosen
+# service_template needs (service_script_filename or script_filename, ...).
+# Vault/config options come from the app_user role.
 app_name: "{{ repo_name }}"
-# Directory inside the checkout that holds the venv and requirements.txt ('' = repo root)
+# Directory inside the checkout that holds the venv ('' = repo root)
 app_python_dir: ""
+app_requirements: requirements.txt
+app_venv_python: "{{ python_version }}"
 service_working_dir: ""
 service_template: customservice.service.j2
 # Optional: path of a template with nginx locations for this app

@@ -1,93 +1,72 @@
 ---
 - name: config aoc_alert_bot
   hosts: all
-  vars:
-    username: aoc_alert_bot
-    repo_name: advent-of-code
+  roles:
+    - role: app_user
+      vars:
+        username: aoc_alert_bot
+        repo_name: advent-of-code
+        app_cron_mailto: "{{ cron_mailto }}"
+        app_vault_file: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
+        app_config_files: "{{ configs }}"
+        app_config_dir: alert
+        app_config_mode: "0600"
   tasks:
-  - name: Add user {{ username }}
-    become: true
-    ansible.builtin.user:
-      name: "{{ username }}"
-      shell: /bin/bash
-  - name: Tasks as user
-    become: true
-    become_user: "{{ username }}"
-    block:
-      - name: Checkout source
-        ansible.builtin.git:
-          repo: "https://github.com/apie/{{ repo_name }}.git"
-          dest: "/home/{{ username }}/src"
-      - name: Install requirements locally
-        ansible.builtin.pip:
-          executable: pip3.10
-          requirements: "/home/{{ username }}/src/alert/requirements.txt"
-      - name: Install telegram-send
-        ansible.builtin.pip:
-          name: telegram-send
-      - name: Setup crontab
-        ansible.builtin.cron:
-          name: MAILTO
-          env: yes
-          job: "{{ cron_mailto }}"
-      - name: Setup cronjob 1
-        vars:
-          leaderboard_id: 380677
-          configfile: telegram-send-ytec.conf
-        ansible.builtin.cron:
-          name: "Send alert for team {{ leaderboard_id }} for year {{ item.year }}"
-          minute: "{{ item.cron_minute }}"
-          hour: "{{ item.cron_hour | default('2') }}"
-          month: "{{ item.cron_month | default('*') }}"
-          job: "/home/{{ username }}/src/alert/update_and_send.bash {{ leaderboard_id}} {{ item.year }} {{ configfile}}"
-        with_items:
-          - { year: 2022 , cron_minute: 1}
-          - { year: 2023 , cron_minute: 2}
-          - { year: 2024 , cron_minute: 3}
-          - { year: 2025 , cron_month: 12, cron_minute: 4, cron_hour: "*"}
-      - name: Setup cronjob 2
-        vars:
-          leaderboard_id: 380357
-          configfile: telegram-send-oud-scintilla-aoc.conf
-        ansible.builtin.cron:
-          name: "Send alert for team {{ leaderboard_id }} for year {{ item.year }}"
-          minute: "{{ item.cron_minute }}"
-          hour: "{{ item.cron_hour | default('2') }}"
-          month: "{{ item.cron_month | default('*') }}"
-          job: "/home/{{ username }}/src/alert/update_and_send.bash {{ leaderboard_id}} {{ item.year }} {{ configfile}}"
-        with_items:
-          - { year: 2015 , cron_minute: 10}
-          - { year: 2016 , cron_minute: 11}
-          - { year: 2017 , cron_minute: 12}
-          - { year: 2018 , cron_minute: 13}
-          - { year: 2019 , cron_minute: 14}
-          - { year: 2020 , cron_minute: 15}
-          - { year: 2021 , cron_minute: 16}
-          - { year: 2022 , cron_minute: 17}
-          - { year: 2023 , cron_minute: 18}
-          - { year: 2024 , cron_minute: 19}
-          - { year: 2025 , cron_month: 12, cron_minute: "*/5", cron_hour: "*"}
-      - name: Setup cronjob 3
-        vars:
-          leaderboard_id: 380677
-          year: 2023
-          configfile: telegram-send-ytec.conf
-        ansible.builtin.cron:
-          name: "Send alert if cookie has expired"
-          minute: "0"
-          hour: "*/12"
-          job: "/home/{{ username }}/src/alert/check_cookie.bash {{ leaderboard_id}} {{ year }} {{ configfile}}"
-  - name: Load bot + telegram-send config from vault
-    include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
-  - name: Copy bot + telegram-send config from vault
-    no_log: true
-    become: true
-    ansible.builtin.copy:
-      content: "{{ item.content }}"
-      dest: "/home/{{ username }}/src/alert/{{ item.filename }}"
-      owner: "{{ username }}"
-      group: "{{ username }}"
-      mode: 0600
-    with_items:
-      - "{{ configs }}"
-
+    - name: Tasks as user
+      become: true
+      become_user: aoc_alert_bot
+      block:
+        - name: Install requirements locally
+          ansible.builtin.pip:
+            executable: pip3.10
+            requirements: /home/aoc_alert_bot/src/alert/requirements.txt
+        - name: Install telegram-send
+          ansible.builtin.pip:
+            name: telegram-send
+        - name: Setup cronjob 1
+          vars:
+            leaderboard_id: 380677
+            configfile: telegram-send-ytec.conf
+          ansible.builtin.cron:
+            name: "Send alert for team {{ leaderboard_id }} for year {{ item.year }}"
+            minute: "{{ item.cron_minute }}"
+            hour: "{{ item.cron_hour | default('2') }}"
+            month: "{{ item.cron_month | default('*') }}"
+            job: "/home/aoc_alert_bot/src/alert/update_and_send.bash {{ leaderboard_id }} {{ item.year }} {{ configfile }}"
+          with_items:
+            - { year: 2022 , cron_minute: 1}
+            - { year: 2023 , cron_minute: 2}
+            - { year: 2024 , cron_minute: 3}
+            - { year: 2025 , cron_month: 12, cron_minute: 4, cron_hour: "*"}
+        - name: Setup cronjob 2
+          vars:
+            leaderboard_id: 380357
+            configfile: telegram-send-oud-scintilla-aoc.conf
+          ansible.builtin.cron:
+            name: "Send alert for team {{ leaderboard_id }} for year {{ item.year }}"
+            minute: "{{ item.cron_minute }}"
+            hour: "{{ item.cron_hour | default('2') }}"
+            month: "{{ item.cron_month | default('*') }}"
+            job: "/home/aoc_alert_bot/src/alert/update_and_send.bash {{ leaderboard_id }} {{ item.year }} {{ configfile }}"
+          with_items:
+            - { year: 2015 , cron_minute: 10}
+            - { year: 2016 , cron_minute: 11}
+            - { year: 2017 , cron_minute: 12}
+            - { year: 2018 , cron_minute: 13}
+            - { year: 2019 , cron_minute: 14}
+            - { year: 2020 , cron_minute: 15}
+            - { year: 2021 , cron_minute: 16}
+            - { year: 2022 , cron_minute: 17}
+            - { year: 2023 , cron_minute: 18}
+            - { year: 2024 , cron_minute: 19}
+            - { year: 2025 , cron_month: 12, cron_minute: "*/5", cron_hour: "*"}
+        - name: Setup cronjob 3
+          vars:
+            leaderboard_id: 380677
+            year: 2023
+            configfile: telegram-send-ytec.conf
+          ansible.builtin.cron:
+            name: "Send alert if cookie has expired"
+            minute: "0"
+            hour: "*/12"
+            job: "/home/aoc_alert_bot/src/alert/check_cookie.bash {{ leaderboard_id }} {{ year }} {{ configfile }}"

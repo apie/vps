@@ -1,0 +1,12 @@
+---
+# Required: username, repo_name
+# Optional: vault file with the config files for this app
+app_vault_file: ""
+# List of {filename, content} dicts, usually defined in the vault file. This is
+# evaluated lazily, so it can refer to a variable that app_vault_file loads.
+app_config_files: []
+# Directory relative to the checkout the config files are copied into
+app_config_dir: ""
+app_config_mode: "0700"
+# When set, add a MAILTO line to the crontab of the user
+app_cron_mailto: ""

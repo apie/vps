@@ -1,82 +1,47 @@
 ---
 - name: config mastermind
   hosts: all
-  handlers:
-    - name: Import tasks
-      import_tasks: "{{ playbook_dir }}/../../handlers/main.yml"
+  roles:
+    - role: app_service
+      vars:
+        username: mastermind
+        repo_name: mastermindbot
+        service_description: "Mastermind bot"
+        script_filename: bot.py
+        service_template: pythonvenvservice.service.j2
+        app_venv_python: python3.10
+        app_requirements: setup/requirements.txt
+        app_vault_file: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
+        app_config_files: "{{ configs }}"
   vars:
     username: mastermind
-    repo_name: mastermindbot
-    service_description: "Mastermind bot"
-    script_filename: bot.py
     gunicorn_service_description: "Mastermind web"
-    gunicorn_service_working_directory: "/home/{{ username }}/src/web/"
+    gunicorn_service_working_directory: "/home/mastermind/src/web/"
     gunicorn_service_script_filename: "start.bash"
-    gunicorn_service_reload_command: "/usr/bin/pkill -HUP -f '{{ username }}/src/web/venv/bin/gunicorn'"
+    gunicorn_service_reload_command: "/usr/bin/pkill -HUP -f 'mastermind/src/web/venv/bin/gunicorn'"
   tasks:
-  - name: Add user {{ username }}
-    become: true
-    ansible.builtin.user:
-      name: "{{ username }}"
-      shell: /bin/bash
-  - name: Tasks as user
-    become: true
-    become_user: "{{ username }}"
-    block:
-      - name: Checkout source
-        ansible.builtin.git:
-          repo: "https://github.com/apie/{{ repo_name }}.git"
-          dest: "/home/{{ username }}/src"
-      - name: Install bot requirements in venv
-        ansible.builtin.pip:
-          virtualenv: "/home/{{ username }}/src/venv"
-          virtualenv_python: python3.10
-          requirements: "/home/{{ username }}/src/setup/requirements.txt"
-      - name: Install web requirements in venv
-        ansible.builtin.pip:
-          virtualenv: "/home/{{ username }}/src/web/venv"
-          virtualenv_python: python3.10
-          requirements: "/home/{{ username }}/src/web/setup/requirements.txt"
-      - name: Load config from vault
-        include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
-      - name: Copy config from vault
-        no_log: true
-        ansible.builtin.copy:
-          content: "{{ item.content }}"
-          dest: "/home/{{ username }}/src/{{ item.filename }}"
-          owner: "{{ username }}"
-          group: "{{ username }}"
-          mode: 0700
-        with_items:
-          - "{{ configs }}"
-  - name: copy bot service file
-    become: true
-    ansible.builtin.template:
-      src: "{{ playbook_dir }}/../../templates/pythonvenvservice.service.j2"
-      dest: "/etc/systemd/system/{{ username }}.service"
-      mode: 644
-    notify:
-      - reload systemctl
-  - name: enable bot service + start
-    become: true
-    ansible.builtin.systemd.service:
-      name: "{{ username }}.service"
-      state: started
-      enabled: yes
-  - name: copy web service file
-    become: true
-    ansible.builtin.template:
-      src: "{{ playbook_dir }}/../../templates/gunicornservice.service.j2"
-      dest: "/etc/systemd/system/{{ username }}-web.service"
-      mode: 644
-    notify:
-      - reload systemctl
-  - name: enable web service + start
-    become: true
-    ansible.builtin.systemd.service:
-      name: "{{ username }}-web.service"
-      state: started
-      enabled: yes
+    - name: Install web requirements in venv
+      become: true
+      become_user: mastermind
+      ansible.builtin.pip:
+        virtualenv: /home/mastermind/src/web/venv
+        virtualenv_python: python3.10
+        requirements: /home/mastermind/src/web/setup/requirements.txt
+    - name: Copy web service file
+      become: true
+      ansible.builtin.template:
+        src: gunicornservice.service.j2
+        dest: /etc/systemd/system/mastermind-web.service
+        mode: "0644"
+      notify: reload systemctl
+    - name: Run pending handlers so systemd knows the unit
+      ansible.builtin.meta: flush_handlers
+    - name: Enable web service + start
+      become: true
+      ansible.builtin.systemd_service:
+        name: mastermind-web.service
+        state: started
+        enabled: true
 
 # TODO web
 # nginx conf
