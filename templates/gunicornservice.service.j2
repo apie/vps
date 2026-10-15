@@ -1,0 +1,16 @@
+[Unit]
+Description={{ gunicorn_service_description }}
+After=syslog.target
+
+[Service]
+Type=simple
+User={{ username }}
+Group={{ username }}
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory={{ gunicorn_service_working_directory }}
+ExecStart={{ gunicorn_service_working_directory }}/{{ gunicorn_service_script_filename }}
+ExecReload={{ gunicorn_service_reload_command }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

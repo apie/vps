@@ -17,5 +17,6 @@ certbot_admin_email: "{{ letsencrypt_email }}"
 certbot_certs:
   - domains:
       - "{{ inventory_hostname }}"
+      # - "event-countdown.stad.gr"
 certbot_create_extra_args: ''
 certbot_auto_renew: false # renew is already done by a cron inside certbot package

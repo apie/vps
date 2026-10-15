@@ -1,0 +1,11 @@
+server {
+    listen 443 ssl default_server;
+    server_name {{ vhostname }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem;
+    location / {
+        include proxy_params;
+        proxy_pass http://localhost:{{ vhostport }};
+    }
+}

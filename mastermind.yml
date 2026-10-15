@@ -1,0 +1,82 @@
+---
+- name: config mastermind
+  hosts: all
+  handlers:
+    - name: Import tasks
+      import_tasks: handlers/main.yml
+  vars:
+    username: mastermind
+    repo_name: mastermindbot
+    service_description: "Mastermind bot"
+    script_filename: bot.py
+    gunicorn_service_description: "Mastermind web"
+    gunicorn_service_working_directory: "/home/{{ username }}/src/web/"
+    gunicorn_service_script_filename: "start.bash"
+    gunicorn_service_reload_command: "/usr/bin/pkill -HUP -f '{{ username }}/src/web/venv/bin/gunicorn'"
+  tasks:
+  - name: Add user {{ username }}
+    become: true
+    ansible.builtin.user:
+      name: "{{ username }}"
+      shell: /bin/bash
+  - name: Tasks as user
+    become: true
+    become_user: "{{ username }}"
+    block:
+      - name: Checkout source
+        ansible.builtin.git:
+          repo: "https://github.com/apie/{{ repo_name }}.git"
+          dest: "/home/{{ username }}/src"
+      - name: Install bot requirements in venv
+        ansible.builtin.pip:
+          virtualenv: "/home/{{ username }}/src/venv"
+          virtualenv_python: python3.10
+          requirements: "/home/{{ username }}/src/setup/requirements.txt"
+      - name: Install web requirements in venv
+        ansible.builtin.pip:
+          virtualenv: "/home/{{ username }}/src/web/venv"
+          virtualenv_python: python3.10
+          requirements: "/home/{{ username }}/src/web/setup/requirements.txt"
+      - name: Load config from vault
+        include_vars: vault/{{ username }}.yml
+      - name: Copy config from vault
+        no_log: true
+        ansible.builtin.copy:
+          content: "{{ item.content }}"
+          dest: "/home/{{ username }}/src/{{ item.filename }}"
+          owner: "{{ username }}"
+          group: "{{ username }}"
+          mode: 0700
+        with_items:
+          - "{{ configs }}"
+  - name: copy bot service file
+    become: true
+    ansible.builtin.template:
+      src: templates/pythonvenvservice.service.j2
+      dest: "/etc/systemd/system/{{ username }}.service"
+      mode: 644
+    notify:
+      - reload systemctl
+  - name: enable bot service + start
+    become: true
+    ansible.builtin.systemd.service:
+      name: "{{ username }}.service"
+      state: started
+      enabled: yes
+  - name: copy web service file
+    become: true
+    ansible.builtin.template:
+      src: templates/gunicornservice.service.j2
+      dest: "/etc/systemd/system/{{ username }}-web.service"
+      mode: 644
+    notify:
+      - reload systemctl
+  - name: enable web service + start
+    become: true
+    ansible.builtin.systemd.service:
+      name: "{{ username }}-web.service"
+      state: started
+      enabled: yes
+
+# TODO web
+# nginx conf
