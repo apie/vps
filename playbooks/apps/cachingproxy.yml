@@ -1,6 +1,6 @@
 ---
 - name: config cachingproxy
-  hosts: letsencrypt
+  hosts: vps2
   roles:
     - role: app_service
       vars:

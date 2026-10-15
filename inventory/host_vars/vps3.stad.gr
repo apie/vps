@@ -1,0 +1,7 @@
+---
+ansible_user: denickm
+hostname: denickm-vps3
+cron_mailto: cron@stad.gr
+letsencrypt_email: cron@stad.gr
+python_version: "3.14"
+

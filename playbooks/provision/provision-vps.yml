@@ -6,13 +6,19 @@
     - name: Import tasks
       import_tasks: "handlers/main.yml"
   tasks:
-  # VPS with Ubuntu 22.04 assumed
+  # VPS with minimum Ubuntu 22.04 assumed
+  # Manual changes assumed:
   # ansible_user configured, host key login + sudo nopassword
-  # Password for ansible_user was changed manually
-  # Dns + reverse dns was changed manually
-  # Exim4 install + smarthost config + dns change was changed manually
-  # Note exim4:
-  # dc_readhost='stad.gr'
+  # Password for ansible_user was changed
+  # Dns + reverse dns was configured to point to this host
+  # Exim4 installed + configured + dns was configured to allow sending mail by this domain
+  # Note exim4 config:
+  #  dpkg-reconfigure exim4-config
+  #  smarthost (no local mail)
+  #  mail name: stad.gr
+  #  listen for: 127.0.0.1 ; ::1
+  #  smarthost: vps.transip.email::587
+  # Also add /etc/exim4/passwd.client file
   - name: Set a hostname
     ansible.builtin.hostname:
       name: "{{ hostname }}"
@@ -31,7 +37,7 @@
       name: Europe/Amsterdam
   - name: Set login banner
     ansible.builtin.copy:
-      src: "files/banner.txt"
+      src: "files/banner-{{ hostname }}.txt"
       dest: /etc/motd
   - name: Dynamic login banner listing the server accounts
     ansible.builtin.copy:
@@ -45,7 +51,8 @@
     lineinfile:
       dest: /etc/ssh/ssh_known_hosts
       line: "{{ github_key.stdout }}"
+      create: true
   - name: Hide nginx server version in responses (enable disabled option 'server_tokens off;')
-    shell: sed -i '/# server_tokens off;/s/# //' /etc/nginx/nginx.conf
+    shell: sed -i 's/server_tokens build;/server_tokens off;/' /etc/nginx/nginx.conf
     notify:
       - reload nginx
