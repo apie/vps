@@ -1,0 +1,9 @@
+---
+# Required: username, repo_name, service_description, service_script_filename
+app_name: "{{ repo_name }}"
+# Directory inside the checkout that holds the venv and requirements.txt ('' = repo root)
+app_python_dir: ""
+service_working_dir: ""
+service_template: customservice.service.j2
+# Optional: path of a template with nginx locations for this app
+nginx_locations_template: ""

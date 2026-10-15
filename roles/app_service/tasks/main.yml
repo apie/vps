@@ -1,0 +1,47 @@
+---
+- name: Add user {{ username }}
+  become: true
+  ansible.builtin.user:
+    name: "{{ username }}"
+    shell: /bin/bash
+- name: Tasks as user
+  become: true
+  become_user: "{{ username }}"
+  block:
+    - name: Checkout source
+      ansible.builtin.git:
+        repo: "https://github.com/apie/{{ repo_name }}.git"
+        dest: "/home/{{ username }}/src"
+    - name: Install requirements in venv
+      ansible.builtin.pip:
+        virtualenv: "/home/{{ username }}/src/{{ app_python_dir }}{{ '/' if app_python_dir else '' }}venv"
+        virtualenv_python: "{{ python_version }}"
+        requirements: "/home/{{ username }}/src/{{ app_python_dir }}{{ '/' if app_python_dir else '' }}requirements.txt"
+- name: Copy service file
+  become: true
+  ansible.builtin.template:
+    src: "{{ service_template }}"
+    dest: "/etc/systemd/system/{{ username }}.service"
+    mode: "0644"
+  notify: reload systemctl
+- name: Run pending handlers so systemd knows the unit
+  ansible.builtin.meta: flush_handlers
+- name: Enable service + start
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ username }}.service"
+    state: started
+    enabled: true
+- name: Copy nginx locations in place
+  become: true
+  ansible.builtin.template:
+    src: "{{ nginx_locations_template }}"
+    dest: "/etc/nginx/conf.d/{{ inventory_hostname }}.{{ app_name }}.locations"
+    mode: "0644"
+  when: nginx_locations_template | length > 0
+  notify: reload nginx
+- name: Restart service
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ username }}.service"
+    state: restarted
