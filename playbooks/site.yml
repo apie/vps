@@ -7,7 +7,6 @@
 
 - import_playbook: apps/aoc_alert_bot.yml
 - import_playbook: apps/birthdaymailer.yml
-- import_playbook: apps/cachingproxy.yml
 - import_playbook: apps/lastfm-event-countdown.yml
 - import_playbook: apps/logandremovebot.yml
 - import_playbook: apps/mastermind.yml

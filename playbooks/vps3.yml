@@ -1,3 +1,4 @@
 ---
 # - import_playbook: provision/provision-vps.yml
 # - import_playbook: provision/provision-letsencrypt.yml
+- import_playbook: apps/cachingproxy.yml

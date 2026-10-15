@@ -1,6 +1,6 @@
 ---
 - name: config cachingproxy
-  hosts: vps2
+  hosts: vps3
   roles:
     - role: app_service
       vars:
