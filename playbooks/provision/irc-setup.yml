@@ -23,7 +23,7 @@
       group: apie
   - name: copy list screen script
     ansible.builtin.copy:
-      src: files/list_screen.bash
+      src: "{{ playbook_dir }}/../../files/list_screen.bash"
       dest: /home/apie/.list_screen
       owner: apie
       group: apie
@@ -33,13 +33,13 @@
       line: ". .list_screen"
   - name: copy irssi config files
     ansible.builtin.copy:
-      src: files/irssi/
+      src: "{{ playbook_dir }}/../../files/irssi/"
       dest: /home/apie/.irssi/
       owner: apie
       group: apie
   - name: copy irssi autorun scripts
     ansible.builtin.copy:
-      src: files/irssi/scripts/autorun/
+      src: "{{ playbook_dir }}/../../files/irssi/scripts/autorun/"
       dest: /home/apie/.irssi/scripts/autorun/
       owner: apie
       group: apie
@@ -51,7 +51,7 @@
     community.general.cpanm:
       name: XML::FeedPP
   - name: load irssi config file from vault
-    include_vars: vault/irssi/config.yml
+    include_vars: "{{ playbook_dir }}/../../vault/irssi/config.yml"
   - name: copy irssi config file from vault
     ansible.builtin.copy:
       content: "{{ item.content }}"

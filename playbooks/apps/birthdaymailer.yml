@@ -30,7 +30,7 @@
           hour: "7"
           job: "/usr/bin/python3.10 /home/{{ username }}/src/mailer/birthdaymailer.py"
   - name: Load settings from vault
-    include_vars: vault/{{ username }}.yml
+    include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
   - name: Copy settings from vault
     no_log: true
     become: true

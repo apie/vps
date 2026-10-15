@@ -78,7 +78,7 @@
           hour: "*/12"
           job: "/home/{{ username }}/src/alert/check_cookie.bash {{ leaderboard_id}} {{ year }} {{ configfile}}"
   - name: Load bot + telegram-send config from vault
-    include_vars: vault/{{ username }}.yml
+    include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
   - name: Copy bot + telegram-send config from vault
     no_log: true
     become: true

@@ -36,7 +36,7 @@
           hour: "7"
           job: "/usr/bin/python3.10 /home/{{ username }}/src/new_series.py | /home/{{ username }}/.local/bin/telegram-send --config /home/{{ username }}/src/telegram-send.conf --stdin"
   - name: Load {{ username }} + telegram-send config from vault
-    include_vars: vault/{{ username }}.yml
+    include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
   - name: Copy {{ username }} + telegram-send config from vault
     no_log: true
     become: true

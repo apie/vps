@@ -40,7 +40,7 @@
           - dagelijksdirkjan
           - LidlDagDeals
   - name: Load telegram-send config from vault
-    include_vars: "vault/{{ username }}.yml"
+    include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
   - name: Copy telegram-send config from vault
     no_log: true
     become: true

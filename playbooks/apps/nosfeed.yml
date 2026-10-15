@@ -34,7 +34,7 @@
           hour: "*"
           job: "/usr/bin/python3.10 /home/{{ username }}/src/generate_combined_feed/generate_rss_for_feeds.py"
   - name: Load config file from vault # FIXME? What config?? feeds.csv
-    include_vars: vault/{{ username }}.yml
+    include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
   - name: Copy config file from vault
     no_log: true
     become: true

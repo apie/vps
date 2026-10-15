@@ -3,7 +3,7 @@
   hosts: all
   handlers:
     - name: Import tasks
-      import_tasks: handlers/main.yml
+      import_tasks: "{{ playbook_dir }}/../../handlers/main.yml"
   vars:
     username: logandremovebot
     repo_name: logandremovebot
@@ -29,7 +29,7 @@
           virtualenv_python: python3.10
           requirements: "/home/{{ username }}/src/setup/requirements.txt"
       - name: Load config from vault
-        include_vars: vault/{{ username }}.yml
+        include_vars: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
       - name: Copy config from vault
         no_log: true
         ansible.builtin.copy:
@@ -43,7 +43,7 @@
   - name: copy service file
     become: true
     ansible.builtin.template:
-      src: templates/pythonvenvservice.service.j2
+      src: "{{ playbook_dir }}/../../templates/pythonvenvservice.service.j2"
       dest: "/etc/systemd/system/{{ username }}.service"
       mode: 644
     notify:
