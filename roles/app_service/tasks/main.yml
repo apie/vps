@@ -1,11 +1,36 @@
 ---
-- name: Install requirements in venv
+- name: Check if command 'uv' is available
+  become: true
+  become_user: "{{ username }}"
+  ansible.builtin.shell: command -v uv
+  environment:
+    PATH: "/home/{{ username }}/.local/bin:/usr/local/bin:{{ ansible_env.PATH }}"
+  register: uv_check
+  changed_when: false
+  failed_when: false
+  when: use_uv
+- name: Install 'uv'
+  become: true
+  become_user: "{{ username }}"
+  ansible.builtin.shell: "curl -LsSf https://astral.sh/uv/install.sh | sh"
+  when: use_uv and uv_check.rc != 0
+# - name: Install requirements in venv with uv
+#   become: true
+#   become_user: "{{ username }}"
+#   ansible.builtin.shell: |
+#     set -e
+#     "{{ uv_check.stdout }}" venv --allow-existing --python "{{ app_venv_python }}" "{{ app_venv_dir }}"
+#     "{{ uv_check.stdout }}" pip install --python "{{ app_venv_dir }}/bin/python" -r "{{ app_src_dir }}{{ app_requirements }}"
+#   changed_when: true
+#   when: app_requirements and uv_check.rc == 0
+- name: Install requirements in venv with pip
   become: true
   become_user: "{{ username }}"
   ansible.builtin.pip:
-    virtualenv: "/home/{{ username }}/src/{{ app_python_dir }}{{ '/' if app_python_dir else '' }}venv"
+    virtualenv: "{{ app_venv_dir }}"
     virtualenv_python: "{{ app_venv_python }}"
-    requirements: "/home/{{ username }}/src/{{ app_python_dir }}{{ '/' if app_python_dir else '' }}{{ app_requirements }}"
+    requirements: "{{ app_src_dir }}{{ app_requirements }}"
+  when: app_requirements and not use_uv
 - name: Copy service file
   become: true
   ansible.builtin.template:

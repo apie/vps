@@ -5,6 +5,9 @@
 app_name: "{{ repo_name }}"
 # Directory inside the checkout that holds the venv ('' = repo root)
 app_python_dir: ""
+app_src_dir: "/home/{{ username }}/src/{{ app_python_dir }}{{ '/' if app_python_dir else '' }}"
+app_venv_dir: "{{ app_src_dir }}venv"
+use_uv: false
 app_requirements: requirements.txt
 app_venv_python: "{{ python_version }}"
 service_working_dir: ""

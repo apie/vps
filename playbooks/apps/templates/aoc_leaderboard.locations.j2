@@ -1,0 +1,10 @@
+location /aoc/scintilla {
+  rewrite ^/aoc/scintilla(.*)$ /$1 break;
+  include proxy_params;
+  proxy_pass http://localhost:12345;
+}
+location /aoc/dj {
+  rewrite ^/aoc/dj(.*)$ /$1?id=380677 break;
+  include proxy_params;
+  proxy_pass http://localhost:12345;
+}
