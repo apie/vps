@@ -2,4 +2,5 @@
 # - import_playbook: provision/provision-vps.yml
 # - import_playbook: provision/provision-letsencrypt.yml
 # - import_playbook: apps/cachingproxy.yml
-- import_playbook: apps/aoc-leaderboard.yml
+# - import_playbook: apps/aoc-leaderboard.yml
+- import_playbook: apps/startpagina.yml

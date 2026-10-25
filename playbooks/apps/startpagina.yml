@@ -2,3 +2,17 @@
 #secrets -> settings.py
 #nginx
 #systemd
+---
+- name: config startpagina
+  hosts: vps3
+  roles:
+    - role: app_service
+      vars:
+        username: startpagina
+        repo_name: startpagina
+        app_requirements: "setup/requirements.txt"
+        service_description: "startpagina"
+        service_script_filename: "start.bash"
+        nginx_locations_template: "{{ playbook_dir }}/templates/startpagina.locations.j2"
+        app_vault_file: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
+        app_config_files: "{{ configs }}"

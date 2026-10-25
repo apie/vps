@@ -1,0 +1,5 @@
+location /startpagina {
+  rewrite ^/startpagina$ / break;
+  include proxy_params;
+  proxy_pass http://localhost:5000;
+}

@@ -13,4 +13,4 @@
 - import_playbook: apps/nosfeed.yml
 - import_playbook: apps/seriesbot.yml
 - import_playbook: apps/telegram_members.yml
-# Not finished yet: apps/albumscrobbles.yml, apps/startpagina.yml
+# Not finished yet: apps/albumscrobbles.yml
