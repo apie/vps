@@ -1,32 +1,52 @@
 ---
 - name: config nosfeed
   hosts: all
+  handlers:
+    - name: Import tasks
+      import_tasks: "../../roles/app_service/handlers/main.yml"
+  vars:
+    username: nosfeed
+    app_name: "{{ username }}"
+    app_python_dir: "generate_combined_feed"
+    app_src_dir: "/home/{{ username }}/src/{{ app_python_dir }}{{ '/' if app_python_dir else '' }}"
+    app_venv_dir: "{{ app_src_dir }}venv"
+    app_requirements: requirements.txt
+    nginx_locations_template: "{{ playbook_dir }}/templates/nosfeed.locations.j2"
   roles:
     - role: app_user
       vars:
-        username: nosfeed
         repo_name: nosfeed
         app_cron_mailto: "{{ cron_mailto }}"
         app_vault_file: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
-        app_config_files: "{{ [config_file] }}"  # FIXME? What config?? feeds.csv
-        app_config_mode: "0644"
+        app_config_files: "{{ configs }}"
+        app_config_dir: "generate_combined_feed"
   tasks:
+    - name: Install requirements in venv with pip
+      become: true
+      become_user: "{{ username }}"
+      ansible.builtin.pip:
+        virtualenv: "{{ app_venv_dir }}"
+        requirements: "{{ app_src_dir }}{{ app_requirements }}"
     - name: Tasks as user
       become: true
       become_user: nosfeed
       block:
-        - name: Install requirements locally
-          ansible.builtin.pip:
-            executable: pip3.10
-            requirements: /home/nosfeed/src/generate_combined_feed/requirements.in
         - name: Setup cronjob
           ansible.builtin.cron:
             name: "Generate rss for news feed"
             minute: "3,30"
             hour: "*"
-            job: "/usr/bin/python3.10 /home/nosfeed/src/generate_combined_feed/generate_rss_for_feeds.py"
-
-# TODO
-# copy feeds.csv from somewhere
-# copy/link generated rss file to www subfolder
-# copy / link html +js to www subfolder
+            job: "{{ app_venv_dir }}/bin/python /home/nosfeed/src/generate_combined_feed/generate_rss_for_feeds.py"
+    - name: Allow nginx to traverse home
+      become: true
+      ansible.builtin.file:
+        path: "/home/{{ username }}"
+        mode: "0711"
+    - name: Copy nginx locations in place
+      become: true
+      ansible.builtin.template:
+        src: "{{ nginx_locations_template }}"
+        dest: "/etc/nginx/conf.d/{{ inventory_hostname }}.{{ app_name }}.locations"
+        mode: "0644"
+      when: nginx_locations_template | length > 0
+      notify: reload nginx

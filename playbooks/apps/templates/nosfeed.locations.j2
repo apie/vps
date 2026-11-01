@@ -1,0 +1,12 @@
+location = /nieuws {
+  return 301 /nieuws/;
+}
+location = /nieuws/ {
+  return 301 /nieuws/index.html;
+}
+location ~ ^/nieuws/(index\.html|android-chrome-192x192\.png|android-chrome-512x512\.png|apple-touch-icon\.png|favicon-16x16\.png|favicon-32x32\.png|favicon\.ico|script\.js|site\.webmanifest|style\.css|util\.js)$ {
+  alias /home/nosfeed/src/$1;
+}
+location ~ ^/nieuws/(combined\.rss|style\.xsl)$ {
+  alias /home/nosfeed/src/generate_combined_feed/static/$1;
+}
