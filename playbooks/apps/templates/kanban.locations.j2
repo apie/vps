@@ -1,0 +1,13 @@
+location /kanban {
+  rewrite ^/kanban(.*)$ /$1 break;
+  auth_basic "kanban";
+  auth_basic_user_file /etc/nginx/kanban.htpasswd;
+  include proxy_params;
+  proxy_pass http://localhost:{{ service_port }};
+}
+location /cards {
+  auth_basic "kanban";
+  auth_basic_user_file /etc/nginx/kanban.htpasswd;
+  include proxy_params;
+  proxy_pass http://localhost:{{ service_port }};
+}

@@ -1,0 +1,26 @@
+---
+- name: config kanban
+  hosts: vps3
+  pre_tasks:
+    - name: load kanban vault vars
+      ansible.builtin.include_vars: "{{ playbook_dir }}/../../vault/kanban.yml"
+    - name: install kanban htpasswd file
+      become: true
+      ansible.builtin.copy:
+        content: "{{ kanban_htpasswd }}\n"
+        dest: /etc/nginx/kanban.htpasswd
+        owner: root
+        group: www-data
+        mode: "0640"
+      no_log: true
+  roles:
+    - role: app_service
+      vars:
+        username: kanban
+        repo_name: kanban
+        app_requirements: ""
+        use_uv: true
+        service_description: "kanban"
+        service_script_filename: "start.bash"
+        service_port: 5002
+        nginx_locations_template: "{{ playbook_dir }}/templates/kanban.locations.j2"
