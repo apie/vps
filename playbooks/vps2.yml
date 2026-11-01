@@ -1,0 +1,11 @@
+---
+# - import_playbook: provision/provision-vps.yml
+# - import_playbook: provision/provision-letsencrypt.yml
+# - import_playbook: provision/irc-setup.yml
+# - import_playbook: apps/birthdaymailer.yml
+# - import_playbook: apps/aoc_alert_bot.yml
+# - import_playbook: apps/logandremovebot.yml
+# - import_playbook: apps/seriesbot.yml
+# - import_playbook: apps/telegram_members.yml
+# - import_playbook: apps/lastfm-event-countdown.yml
+# - import_playbook: apps/mastermind.yml
