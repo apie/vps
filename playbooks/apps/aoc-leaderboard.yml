@@ -11,5 +11,5 @@
         service_description: "aoc_leaderboard"
         service_script_filename: "start.bash"
         nginx_locations_template: "{{ playbook_dir }}/templates/aoc_leaderboard.locations.j2"
-        app_vault_file: "{{ playbook_dir }}/../../vault/{{ username }}.yml"
-        app_config_files: "{{ configs }}"
+        app_vault_file: "{{ playbook_dir }}/../../vault/aoc_cookie.yml"
+        app_config_files: "{{ cookies }}"

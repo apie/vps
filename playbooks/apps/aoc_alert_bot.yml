@@ -1,6 +1,6 @@
 ---
 - name: config aoc_alert_bot
-  hosts: all
+  hosts: vps2
   roles:
     - role: app_user
       vars:
@@ -70,3 +70,20 @@
             minute: "0"
             hour: "*/12"
             job: "/home/aoc_alert_bot/src/alert/check_cookie.bash {{ leaderboard_id }} {{ year }} {{ configfile }}"
+    - name: Load cookie config from vault
+      ansible.builtin.include_vars: "{{ playbook_dir }}/../../vault/aoc_cookie.yml"
+    - name: Copy config from vault
+      vars:
+        username: aoc_alert_bot
+        app_config_files: "{{ cookies }}"
+        app_config_dir: alert
+        app_config_mode: "0600"
+      become: true
+      no_log: true
+      ansible.builtin.copy:
+        content: "{{ item.content }}"
+        dest: "/home/{{ username }}/src/{{ app_config_dir }}/{{ item.filename }}"
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: "{{ app_config_mode }}"
+      loop: "{{ app_config_files }}"
