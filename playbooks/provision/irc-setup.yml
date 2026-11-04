@@ -1,6 +1,6 @@
 ---
 - name: config host for irc client
-  hosts: all
+  hosts: vps2
   become: true
   tasks:
   - name: Install irssi

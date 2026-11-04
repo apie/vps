@@ -1,6 +1,6 @@
 ---
 - name: config nosfeed
-  hosts: all
+  hosts: vps3
   handlers:
     - name: Import tasks
       import_tasks: "../../roles/app_service/handlers/main.yml"

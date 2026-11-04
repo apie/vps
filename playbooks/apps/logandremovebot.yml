@@ -1,6 +1,6 @@
 ---
 - name: config logandremovebot
-  hosts: all
+  hosts: vps2
   roles:
     - role: app_service
       vars:
