@@ -1,0 +1,28 @@
+{% set all_names = [vhostname] + vhost_aliases %}
+{% set served = [vhost_canonical] if vhost_canonical | length > 0 else all_names %}
+{% set redirected = all_names | difference(served) %}
+{% if redirected | length > 0 %}
+server {
+    listen 443 ssl;
+    server_name {{ redirected | join(" ") }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ vhostname }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ vhostname }}/privkey.pem;
+    return 301 https://{{ vhost_canonical }}$request_uri;
+}
+
+{% endif %}
+server {
+    listen 443 ssl;
+    server_name {{ served | join(" ") }};
+
+    access_log /var/log/nginx/{{ vhostname }}.access.log;
+    error_log /var/log/nginx/{{ vhostname }}.error.log;
+
+    ssl_certificate /etc/letsencrypt/live/{{ vhostname }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ vhostname }}/privkey.pem;
+    location / {
+        include proxy_params;
+        proxy_pass http://localhost:{{ vhostport }};
+    }
+}

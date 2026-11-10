@@ -2,17 +2,19 @@
 - hosts: letsencrypt
   become: true
 
-
   pre_tasks:
     - name: Ensure apt cache is updated.
       apt: update_cache=true cache_valid_time=600
 
-  roles:
-    - geerlingguy.firewall
-    - geerlingguy.nginx
-    - geerlingguy.certbot
-
   tasks:
+    - name: Import firewall role.
+      ansible.builtin.import_role:
+        name: geerlingguy.firewall
+
+    - name: Import nginx role.
+      ansible.builtin.import_role:
+        name: geerlingguy.nginx
+
     - name: Ensure docroot exists.
       file:
         path: "{{ nginx_docroot }}"
@@ -24,10 +26,73 @@
         dest: "{{ nginx_docroot }}/index.html"
         mode: 0755
 
-    - name: Copy Nginx server configuration in place.
+    # Certificates are requested with the webroot method, so nginx has to
+    # serve the ACME challenge (port 80) before certbot runs. On a fresh host
+    # the certificate doesn't exist yet, so the HTTPS block is left out first.
+    - name: Check if the host certificate exists.
+      ansible.builtin.stat:
+        path: "/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem"
+      register: host_cert
+
+    - name: Copy Nginx server configuration in place (HTTP, plus HTTPS if cert exists).
       template:
         src: "templates/https-letsencrypt.conf.j2"
         dest: /etc/nginx/sites-enabled/https-letsencrypt.conf
         mode: 0644
+      vars:
+        host_cert_ready: "{{ host_cert.stat.exists }}"
       notify: restart nginx
 
+    - name: Apply nginx config before certbot runs.
+      ansible.builtin.meta: flush_handlers
+
+    - name: Import certbot role.
+      ansible.builtin.import_role:
+        name: geerlingguy.certbot
+
+    # Migration from the standalone method: the stop/start hooks make every
+    # certbot run (also the renewal cron) stop nginx, which breaks webroot.
+    - name: Remove standalone stop/start nginx hooks.
+      ansible.builtin.file:
+        path: "/etc/letsencrypt/renewal-hooks/{{ item }}"
+        state: absent
+      loop:
+        - pre/stop_services
+        - post/start_services
+
+    - name: Remove stored hooks from the host certificate renewal config.
+      ansible.builtin.lineinfile:
+        path: "/etc/letsencrypt/renewal/{{ inventory_hostname }}.conf"
+        regexp: '^(pre_hook|post_hook|renew_hook)\s*='
+        state: absent
+
+    - name: Check if the host certificate still renews with standalone.
+      ansible.builtin.command: grep -q '^authenticator = standalone' "/etc/letsencrypt/renewal/{{ inventory_hostname }}.conf"
+      register: host_cert_standalone
+      changed_when: false
+      failed_when: host_cert_standalone.rc > 1
+
+    - name: Switch host certificate renewal to webroot.
+      ansible.builtin.command: >
+        certbot reconfigure --cert-name {{ inventory_hostname }}
+        --authenticator webroot --webroot-path {{ nginx_docroot }}
+        --no-directory-hooks --non-interactive
+      when: host_cert_standalone.rc == 0
+
+    - name: Re-check if the host certificate exists.
+      ansible.builtin.stat:
+        path: "/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem"
+      register: host_cert
+
+    - name: Copy Nginx server configuration in place (now with HTTPS).
+      template:
+        src: "templates/https-letsencrypt.conf.j2"
+        dest: /etc/nginx/sites-enabled/https-letsencrypt.conf
+        mode: 0644
+      vars:
+        host_cert_ready: "{{ host_cert.stat.exists }}"
+      notify: restart nginx
+
+    - name: Make sure nginx config is valid
+      ansible.builtin.command: nginx -t
+      changed_when: false

@@ -14,6 +14,10 @@ nginx_server_tokens: "off"
 
 # Let's Encrypt certificate settings.
 certbot_create_if_missing: true
+# webroot: nginx keeps running and serves /.well-known/acme-challenge/
+certbot_create_method: webroot
+certbot_webroot: "{{ nginx_docroot }}"
+certbot_create_standalone_stop_services: []
 certbot_admin_email: "{{ letsencrypt_email }}"
 certbot_certs:
   - domains:
