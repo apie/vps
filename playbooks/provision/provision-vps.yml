@@ -10,6 +10,8 @@
   # Manual changes assumed:
   # ansible_user configured, host key login + sudo nopassword
   # Password for ansible_user was changed
+  # sshd PermitRootLogin no
+  # sshd PasswordAuthentication no
   # Dns + reverse dns was configured to point to this host
   # Exim4 installed + configured + dns was configured to allow sending mail by this domain
   # Note exim4 config:
