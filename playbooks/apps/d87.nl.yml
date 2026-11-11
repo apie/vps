@@ -1,0 +1,24 @@
+---
+- name: config d87.nl
+  hosts: vps3
+  vars:
+    username: d87nl
+    local_static_path: "../../static_content/d87nl"
+    vhost_static_path: "{{ nginx_docroot }}/d87nl"
+  roles:
+    - role: static_vhost
+      vars:
+        vhostname: d87.nl
+        vhost_aliases:
+          - www.d87.nl
+        vhost_canonical: d87.nl
+  tasks:
+    - name: Copy static content
+      become: true
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/{{ local_static_path }}/"
+        dest: "{{ vhost_static_path }}/"
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        directory_mode: "0755"
+        mode: "0644"

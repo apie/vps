@@ -1,3 +1,5 @@
 todo.txt
 *.passwd
 roles/geerlingguy.*
+static_content/*
+

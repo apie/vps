@@ -1,0 +1,11 @@
+---
+# Required: vhostname, vhost_static_path, username (owner of the static files;
+# the user is created if missing).
+# Extra hostnames served by this vhost and included in its certificate
+# (e.g. ["www.example.com"]). The first name, vhostname, names the cert.
+vhost_aliases: []
+
+# If set, this name serves the site and every other name (vhostname and
+# vhost_aliases) gets a 301 redirect to it. Must be one of those names.
+# Empty: all names serve the site.
+vhost_canonical: ""

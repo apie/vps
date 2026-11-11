@@ -7,3 +7,4 @@
 # - import_playbook: apps/startpagina.yml
 # - import_playbook: apps/nosfeed.yml
 # - import_playbook: apps/kanban.yml
+# - import_playbook: apps/d87.nl.yml

@@ -1,0 +1,51 @@
+---
+# Requires: vhostname, vhost_static_path, username. Optional: vhost_aliases, vhost_canonical.
+# DNS for vhostname must point at this host.
+# Certificate is requested via webroot (port-80 default_server serves
+# /.well-known/acme-challenge/ from nginx_docroot), so nginx never stops.
+- name: Add user {{ username }}
+  become: true
+  ansible.builtin.user:
+    name: "{{ username }}"
+    shell: /bin/bash
+
+- name: Create static files directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ vhost_static_path }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Request certificate for vhost
+  become: true
+  ansible.builtin.command: >
+    certbot certonly --webroot -w {{ nginx_docroot }}
+    {% for name in [vhostname] + vhost_aliases %}-d {{ name }} {% endfor %}
+    -m {{ letsencrypt_email }}
+    --agree-tos --non-interactive --expand --keep-until-expiring
+    --no-directory-hooks
+  register: vhost_certbot
+  changed_when: "'Successfully received certificate' in vhost_certbot.stdout"
+
+- name: Copy vhost config in place
+  become: true
+  ansible.builtin.template:
+    src: https-vhost.j2
+    dest: "/etc/nginx/sites-available/{{ vhostname }}.conf"
+    mode: "0644"
+  notify: reload nginx
+
+- name: Enable vhost
+  become: true
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ vhostname }}.conf"
+    dest: "/etc/nginx/sites-enabled/{{ vhostname }}.conf"
+    state: link
+  notify: reload nginx
+
+- name: Make sure nginx config is valid
+  become: true
+  ansible.builtin.command: nginx -t
+  changed_when: false
