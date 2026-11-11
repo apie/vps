@@ -1,0 +1,46 @@
+---
+- name: provision fail2ban
+  hosts: all
+  become: true
+  tasks:
+  - name: Install packages
+    package:
+      name:
+        - fail2ban
+      state: present
+    when: ansible_os_family == 'Debian'
+  - name: Start and enable service
+    ansible.builtin.systemd_service:
+      name: fail2ban.service
+      state: started
+      enabled: true
+  - name: enable nginx-limit-req by adding file to jails.d/ that searches both nginx error and access log
+    ansible.builtin.copy:
+      dest: /etc/fail2ban/jail.d/nginx-limit-req.conf
+      owner: root
+      group: root
+      mode: "0644"
+      content: |
+        [nginx-limit-req]
+        enabled = true
+        logpath = %(nginx_error_log)s
+                  %(nginx_access_log)s
+    notify: restart fail2ban
+  - name: enable nginx-botsearch by adding file to jails.d/ that searches both nginx error and access log
+    ansible.builtin.copy:
+      dest: /etc/fail2ban/jail.d/nginx-botsearch.conf
+      owner: root
+      group: root
+      mode: "0644"
+      content: |
+        [nginx-botsearch]
+        enabled = true
+        logpath = %(nginx_error_log)s
+                  %(nginx_access_log)s
+    notify: restart fail2ban
+
+  handlers:
+  - name: restart fail2ban
+    ansible.builtin.systemd_service:
+      name: fail2ban.service
+      state: restarted
