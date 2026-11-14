@@ -3,7 +3,7 @@
   hosts: vps3
   vars:
     username: d87nl
-    local_static_path: "../../static_content/d87nl"
+    local_static_path: "../../static_content/d87nl"  # a symlink to the repo
     vhost_static_path: "{{ nginx_docroot }}/d87nl"
   roles:
     - role: static_vhost
@@ -15,10 +15,11 @@
   tasks:
     - name: Copy static content
       become: true
-      ansible.builtin.copy:
+      become_user: "{{ username }}"
+      ansible.posix.synchronize:
         src: "{{ playbook_dir }}/{{ local_static_path }}/"
         dest: "{{ vhost_static_path }}/"
-        owner: "{{ username }}"
-        group: "{{ username }}"
-        directory_mode: "0755"
-        mode: "0644"
+        delete: true
+        rsync_opts:
+          - "--exclude=.git"
+          - "--chmod=D0755,F0644"
