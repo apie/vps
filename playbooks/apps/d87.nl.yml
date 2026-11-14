@@ -14,6 +14,7 @@
         vhost_canonical: d87.nl
   tasks:
     - name: Copy static content
+      tags: [static]
       become: true
       become_user: "{{ username }}"
       ansible.posix.synchronize:
