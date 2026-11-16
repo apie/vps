@@ -1,6 +1,7 @@
 ---
 # - import_playbook: provision/provision-vps.yml
 # - import_playbook: provision/provision-letsencrypt.yml
+# - import_playbook: provision/provision-fail2ban.yml
 # - import_playbook: provision/irc-setup.yml
 # - import_playbook: apps/birthdaymailer.yml
 # - import_playbook: apps/aoc_alert_bot.yml
