@@ -38,6 +38,33 @@
         logpath = %(nginx_error_log)s
                   %(nginx_access_log)s
     notify: restart fail2ban
+  - name: add filter for banned 404 paths (requests for urls ending in .env)
+    ansible.builtin.copy:
+      dest: /etc/fail2ban/filter.d/nginx-404-env.conf
+      owner: root
+      group: root
+      mode: "0644"
+      content: |
+        [Definition]
+        failregex = ^<HOST> \S+ \S+ \[[^\]]*\] "[A-Z]+ \S*\.env(?:\?\S*)? [^"]*" 404 .*$
+        ignoreregex =
+    notify: restart fail2ban
+  - name: add jail for banned 404 paths, bans after 3 failures
+    ansible.builtin.copy:
+      dest: /etc/fail2ban/jail.d/nginx-404-env.conf
+      owner: root
+      group: root
+      mode: "0644"
+      content: |
+        [nginx-404-env]
+        enabled = true
+        port = http,https
+        filter = nginx-404-env
+        logpath = %(nginx_access_log)s
+        maxretry = 3
+        findtime = 10m
+        bantime = 1d
+    notify: restart fail2ban
 
   handlers:
   - name: restart fail2ban
