@@ -27,7 +27,9 @@
     src: "/etc/nginx/sites-available/{{ vhostname }}.conf"
     dest: "/etc/nginx/sites-enabled/{{ vhostname }}.conf"
     state: link
-  notify: reload nginx
+  notify:
+    - reload nginx
+    - restart fail2ban  # needed to pick up new nginx logfiles
 
 - name: Make sure nginx config is valid
   become: true
