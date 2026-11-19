@@ -8,5 +8,4 @@ app_config_files: []
 # Directory relative to the checkout the config files are copied into
 app_config_dir: ""
 app_config_mode: "0700"
-# When set, add a MAILTO line to the crontab of the user
-app_cron_mailto: ""
+app_cron_mailto: "{{ cron_mailto }}"
